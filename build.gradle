@@ -1,12 +1,25 @@
 #!groovy
 // The above triggers groovy syntax highlighting in vim
 
+buildscript {
+    repositories {
+        mavenCentral() 
+    }
+    dependencies {
+        classpath group: 'net.saliman', name: 'gradle-cobertura-plugin', version: '2.0.0'
+    }
+}
+
+//dependency on previous stable version of this plugin to produce code coverage
+apply plugin: 'cobertura'
+
 apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
+
 
 sourceCompatibility = '1.5'
 targetCompatibility = '1.5'
@@ -38,15 +51,23 @@ dependencies {
 	compile gradleApi()
 	compile 'net.sourceforge.cobertura:cobertura:2.0.3'
 	testCompile 'junit:junit:4.10'
+	testCompile "org.powermock:powermock-core:1.5.1"
+	testCompile "org.powermock:powermock-api-mockito:1.5.1"
+	testCompile "org.powermock:powermock-module-junit4:1.5.1"
+	testCompile "org.mockito:mockito-all:1.9.5"
 	archives "org.apache.maven.wagon:wagon-ssh:2.2"
 	archives "org.apache.maven.wagon:wagon-ssh-external:2.2"
 }
 
-project.tasks.test.configure {
-	includes = [ '**/*Test.class' ]
-	useTestNG()
-}
+
 project.tasks.uploadArchives.dependsOn 'test'
+
+/*cobertura {
+	coverageFormats = ['xml', 'html']
+	coverageDirs << file("build/classes/main")
+	coverageSourceDirs << file("src/main/groovy")
+	coverageExcludes = ['.*net.saliman.gradle.plugin.cobertura.ignore.*']
+}*/
 
 task sourceJar(type: Jar) {
 	description = "An archive of the source code for Maven Central"
