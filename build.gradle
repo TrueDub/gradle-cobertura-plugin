@@ -62,12 +62,11 @@ dependencies {
 
 project.tasks.uploadArchives.dependsOn 'test'
 
-/*cobertura {
+cobertura {
 	coverageFormats = ['xml', 'html']
 	coverageDirs << file("build/classes/main")
 	coverageSourceDirs << file("src/main/groovy")
-	coverageExcludes = ['.*net.saliman.gradle.plugin.cobertura.ignore.*']
-}*/
+}
 
 task sourceJar(type: Jar) {
 	description = "An archive of the source code for Maven Central"
