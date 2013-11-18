@@ -1,6 +1,7 @@
 package net.saliman.gradle.plugin.cobertura
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -24,13 +25,14 @@ class InstrumentTask extends DefaultTask {
 	static final String NAME = 'instrument'
 	File destinationDir
 	CoberturaExtension configuration
-	def runner
+	CoberturaRunner runner
+	Configuration classpath
 
 	/**
 	 * If the included classes change, we need to re-instrument
 	 */
 	@Input
-	 def getIncludes() {
+	def getIncludes() {
 		configuration.coverageIncludes
 	}
 
@@ -83,7 +85,7 @@ class InstrumentTask extends DefaultTask {
 	 * tests.
 	 */
 	@OutputFile
-	def getInputDatafile () {
+	def getInputDatafile() {
 		configuration.coverageInputDatafile
 	}
 
@@ -98,7 +100,7 @@ class InstrumentTask extends DefaultTask {
 
 	@TaskAction
 	def instrument() {
-		project.logger.info("Instrumenting code...")
+		project.logger.info("${path} - Instrumenting code...")
 		// When Cobertura instruments code, it appears to use some of what is
 		// already in the .ser file, if it exists, so the first thing we need to
 		// do is get rid of the old .ser file.  Otherwise, changing ignoreTrivial
@@ -122,7 +124,6 @@ class InstrumentTask extends DefaultTask {
 		// add the instrumented dir to the list.
 		instrumentDirs << ("${project.buildDir}/instrumented_classes" as String)
 
-
 		// set the auxiliary classpath to the current classpath plus jars in the lib dir plus classes in the output dir.
 		// AKA current classpath + compileClasspath + compileClassPath
 		//	    <path id="cobertura.auxpath">
@@ -132,10 +133,10 @@ class InstrumentTask extends DefaultTask {
 //	    </fileset>
 //	    <pathelement location="classes"/>
 //	    </path>
-		String auxiliaryClasspath =	project.sourceSets.main.output.classesDir.path +
+		String auxiliaryClasspath = project.sourceSets.main.output.classesDir.path +
 						":" + project.sourceSets.main.compileClasspath.getAsPath()
 
-		runner.instrument null, configuration.coverageInputDatafile.path, getDestinationDir()?.path,
+		runner.withClasspath(classpath.files).instrument null, configuration.coverageInputDatafile.path, getDestinationDir()?.path,
 						configuration.coverageIgnores as List,
 						configuration.coverageIncludes as List,
 						configuration.coverageExcludes as List,
